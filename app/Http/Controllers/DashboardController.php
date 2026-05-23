@@ -4,42 +4,53 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\MaintenanceLog;
-use App\Models\User;
 use App\Models\MaintenanceSchedule;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $totalAssets = Asset::count();
-        $normalAssets = Asset::where('status', 'normal')->count();
+        // Stat cards
+        $totalAssets       = Asset::count();
+        $normalAssets      = Asset::where('status', 'normal')->count();
         $maintenanceAssets = Asset::where('status', 'maintenance')->count();
-        $brokenAssets = Asset::where('status', 'broken')->count();
+        $brokenAssets      = Asset::where('status', 'broken')->count();
 
-        // Alerts dengan level
-        $recentAlerts = MaintenanceLog::with(['asset'])
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->orWhereHas('asset', fn($q) => $q->where('status', 'broken'))
+        // Recent maintenance — semua status, diurutkan pending dulu
+        $recentMaintenances = MaintenanceLog::with(['asset', 'reporter'])
+            ->orderByRaw("CASE
+                WHEN status = 'pending'     THEN 1
+                WHEN status = 'in_progress' THEN 2
+                WHEN status = 'resolved'    THEN 3
+            END")
             ->latest()
-            ->take(5)
+            ->take(10)
+            ->get();
+
+        // Priority alerts — log yang pending atau in_progress
+        $recentAlerts = MaintenanceLog::with('asset')
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->latest()
+            ->take(10)
             ->get()
             ->map(function ($log) {
-                $log->alert_level = match(true) {
-                    $log->asset?->status === 'broken' => 'critical',
-                    $log->status === 'in_progress'    => 'info',
-                    default                           => 'warning',
+                $log->alert_level = match($log->status) {
+                    'pending'     => 'warning',
+                    'in_progress' => 'info',
+                    default       => 'info',
                 };
                 return $log;
             });
 
-        // Calendar events
+        // Calendar events — gabungan log & schedule
         $logEvents = MaintenanceLog::with('asset')
             ->get()
             ->map(fn($log) => [
                 'id'     => $log->id,
                 'date'   => $log->created_at->format('Y-m-d'),
                 'title'  => $log->asset->name ?? '-',
-                'status' => $log->status, // pending, in_progress, resolved
+                'status' => $log->status,
                 'type'   => 'log',
             ]);
 
@@ -58,16 +69,16 @@ class DashboardController extends Controller
                 'type'   => 'schedule',
             ]);
 
-            $calendarEvents = $logEvents->merge($scheduleEvents)->values();
-
-        $recentMaintenances = MaintenanceLog::with(['asset'])
-            ->latest()
-            ->take(5)
-            ->get();
+        $calendarEvents = $logEvents->merge($scheduleEvents)->values();
 
         return view('dashboard.index', compact(
-            'totalAssets', 'normalAssets', 'maintenanceAssets', 'brokenAssets',
-            'recentAlerts', 'calendarEvents', 'recentMaintenances'
+            'totalAssets',
+            'normalAssets',
+            'maintenanceAssets',
+            'brokenAssets',
+            'recentMaintenances',
+            'recentAlerts',
+            'calendarEvents',
         ));
     }
 }

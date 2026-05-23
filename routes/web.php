@@ -8,6 +8,7 @@ use App\Http\Controllers\MaintenanceScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,28 +38,57 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Assets
-    Route::resource('assets', AssetController::class);
+    // Assets → admin & operator only
+    Route::resource('assets', AssetController::class)
+        ->middleware('role:admin,operator');
 
-    // Categories
-    Route::resource('categories', AssetCategoryController::class);
+    // Categories → admin only
+    Route::resource('categories', AssetCategoryController::class)
+        ->middleware('role:admin');
 
-    // Users
-    Route::resource('users', UserController::class);
+    // Users → admin only
+    Route::resource('users', UserController::class)
+        ->middleware('role:admin');
 
     // Profile
-    Route::get('/profile', fn() => view('profile.show'))->name('profile.show');
-    Route::get('/profile/edit', fn() => view('profile.edit'))->name('profile.edit');
-    Route::put('/profile', fn() => redirect()->route('profile.show'))->name('profile.update');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Maintenance Schedule — admin & operator only
-    Route::middleware('role:admin,operator')->group(function () {
-        Route::resource('maintenance/schedule', MaintenanceScheduleController::class)
-            ->names('maintenance.schedule');
-    });
+    // Maintenance Schedule
+    Route::get('maintenance/schedule', [MaintenanceScheduleController::class, 'index'])
+        ->name('maintenance.schedule.index')
+        ->middleware('role:admin,operator,teknisi');
 
-    // Maintenance Log — semua role (pembatasan di controller)
+    Route::get('maintenance/schedule/{id}', [MaintenanceScheduleController::class, 'show'])
+        ->name('maintenance.schedule.show')
+        ->middleware('role:admin,operator,teknisi');
+
+    Route::resource('maintenance/schedule', MaintenanceScheduleController::class)
+        ->except(['index', 'show'])
+        ->middleware('role:admin,operator')
+        ->names([
+            'create'  => 'maintenance.schedule.create',
+            'store'   => 'maintenance.schedule.store',
+            'edit'    => 'maintenance.schedule.edit',
+            'update'  => 'maintenance.schedule.update',
+            'destroy' => 'maintenance.schedule.destroy',
+        ]);
+
+    Route::patch('maintenance/schedule/{id}/status', [MaintenanceScheduleController::class, 'updateStatus'])
+        ->name('maintenance.schedule.updateStatus')
+        ->middleware('role:admin,operator,teknisi');
+
+    // Maintenance Logs
     Route::resource('maintenance/logs', MaintenanceLogController::class)
-        ->names('maintenance');
+        ->names([
+            'index'   => 'maintenance.index',
+            'create'  => 'maintenance.create',
+            'store'   => 'maintenance.store',
+            'show'    => 'maintenance.show',
+            'edit'    => 'maintenance.edit',
+            'update'  => 'maintenance.update',
+            'destroy' => 'maintenance.destroy',
+        ]);
 
 });

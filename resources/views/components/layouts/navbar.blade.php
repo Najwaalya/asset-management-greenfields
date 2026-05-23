@@ -19,8 +19,114 @@
         <!-- RIGHT -->
         <div class="flex items-center space-x-4">
 
-            <input class="hidden lg:block border px-3 py-1 rounded-lg text-sm"
+            <input class="hidden lg:block border px-1 py-1 rounded-lg text-sm"
                    placeholder="Search...">
+
+            <!-- BELL NOTIFICATION -->
+            <div class="relative" id="notif-wrapper">
+
+                <button id="notif-btn"
+                        class="relative p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition">
+
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+
+                    @if($navNotifCount > 0)
+                        <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                            {{ $navNotifCount > 9 ? '9+' : $navNotifCount }}
+                        </span>
+                    @endif
+
+                </button>
+
+                <!-- DROPDOWN NOTIFIKASI -->
+                <div id="notif-dropdown"
+                    class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
+
+                    <!-- HEADER -->
+                    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                        <p class="text-sm font-semibold text-gray-900">Notifikasi Jadwal</p>
+                        @if($navNotifCount > 0)
+                            <span class="text-xs bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">
+                                {{ $navNotifCount }} jadwal
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- LIST -->
+                    <div class="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+
+                        @forelse($navNotifications as $notif)
+                            @php
+                                $isOverdue  = $notif->scheduled_date->isPast() && $notif->status === 'upcoming';
+                                $isToday    = $notif->scheduled_date->isToday();
+                                $isSoon     = $notif->scheduled_date->diffInDays(now()) <= 3 && !$isOverdue;
+
+                                $badgeClass = match(true) {
+                                    $isOverdue => 'bg-red-100 text-red-700',
+                                    $isToday   => 'bg-yellow-100 text-yellow-700',
+                                    $isSoon    => 'bg-orange-100 text-orange-700',
+                                    default    => 'bg-blue-100 text-blue-700',
+                                };
+
+                                $badgeLabel = match(true) {
+                                    $isOverdue => 'Overdue',
+                                    $isToday   => 'Hari ini',
+                                    $isSoon    => 'Segera',
+                                    default    => 'Upcoming',
+                                };
+                            @endphp
+
+                            <a href="{{ route('maintenance.schedule.show', $notif->id) }}"
+                            class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition">
+
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $notif->title }}</p>
+                                    <p class="text-xs text-gray-500 truncate mt-0.5">{{ $notif->asset->name ?? '-' }}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-xs {{ $badgeClass }} px-1.5 py-0.5 rounded-full font-medium">
+                                            {{ $badgeLabel }}
+                                        </span>
+                                        <span class="text-xs text-gray-400">
+                                            {{ $notif->scheduled_date->format('d M Y') }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </a>
+
+                        @empty
+                            <div class="px-4 py-6 text-center text-gray-400 text-sm">
+                                <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Tidak ada jadwal aktif
+                            </div>
+                        @endforelse
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="px-4 py-2 border-t border-gray-100">
+                        <a href="{{ route('maintenance.schedule.index') }}"
+                        class="text-xs text-green-600 hover:text-green-700 font-medium">
+                            Lihat semua jadwal →
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
 
             <!-- PROFILE DROPDOWN -->
             <div class="relative" id="profile-wrapper">
@@ -120,6 +226,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('click', function () {
         dropdown.classList.add('hidden');
+    });
+
+    // Notifikasi dropdown
+    const notifBtn = document.getElementById('notif-btn');
+    const notifDropdown = document.getElementById('notif-dropdown');
+
+    notifBtn?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('hidden');
+        // Tutup profile dropdown kalau terbuka
+        dropdown.classList.add('hidden');
+    });
+
+    document.addEventListener('click', function() {
+        notifDropdown?.classList.add('hidden');
     });
 
 });

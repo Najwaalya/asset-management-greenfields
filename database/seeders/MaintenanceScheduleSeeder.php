@@ -14,7 +14,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 1,
                 'created_by'     => 1,
-                'assigned_to'    => 1,
+                'assigned_to'    => 3,
                 'title'          => 'Servis Rutin Laptop ASUS ROG',
                 'description'    => 'Pembersihan debu, cek kondisi baterai, update driver',
                 'scheduled_date' => now()->addDays(3),
@@ -25,7 +25,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 5,
                 'created_by'     => 1,
-                'assigned_to'    => 1,
+                'assigned_to'    => 3,
                 'title'          => 'Perawatan Printer Epson L3150',
                 'description'    => 'Head cleaning, cek level tinta, test print',
                 'scheduled_date' => now()->addDays(1),
@@ -36,7 +36,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 12,
                 'created_by'     => 1,
-                'assigned_to'    => 1,
+                'assigned_to'    => 3,
                 'title'          => 'Maintenance Server Dell PowerEdge',
                 'description'    => 'Cek log error, backup data, update patch OS',
                 'scheduled_date' => now()->addDays(7),
@@ -47,7 +47,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 10,
                 'created_by'     => 1,
-                'assigned_to'    => 2,
+                'assigned_to'    => 3,
                 'title'          => 'Cek Projector Ruang Rapat A',
                 'description'    => 'Bersihkan lensa, cek jam pemakaian lampu, kalibrasi warna',
                 'scheduled_date' => now()->addDays(14),
@@ -58,7 +58,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 14,
                 'created_by'     => 1,
-                'assigned_to'    => 2,
+                'assigned_to'    => 3,
                 'title'          => 'Pengecekan UPS APC 1500VA',
                 'description'    => 'Test baterai, cek runtime, bersihkan filter udara',
                 'scheduled_date' => now()->addDays(5),
@@ -71,7 +71,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 3,
                 'created_by'     => 1,
-                'assigned_to'    => 1,
+                'assigned_to'    => 3,
                 'title'          => 'Servis Laptop Lenovo ThinkPad',
                 'description'    => 'Install ulang OS, upgrade storage ke SSD',
                 'scheduled_date' => now()->subDays(1),
@@ -82,7 +82,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 11,
                 'created_by'     => 1,
-                'assigned_to'    => 2,
+                'assigned_to'    => 3,
                 'title'          => 'Perbaikan Projector BenQ MX825ST',
                 'description'    => 'Ganti lampu projector, bersihkan filter',
                 'scheduled_date' => now(),
@@ -95,7 +95,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 13,
                 'created_by'     => 1,
-                'assigned_to'    => 1,
+                'assigned_to'    => 3,
                 'title'          => 'Maintenance Server HP ProLiant',
                 'description'    => 'Cek RAID, pembersihan debu, update firmware',
                 'scheduled_date' => now()->subDays(15),
@@ -106,7 +106,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 6,
                 'created_by'     => 1,
-                'assigned_to'    => 2,
+                'assigned_to'    => 3,
                 'title'          => 'Servis Rutin Printer Canon G2010',
                 'description'    => 'Head cleaning, isi ulang tinta',
                 'scheduled_date' => now()->subDays(20),
@@ -117,7 +117,7 @@ class MaintenanceScheduleSeeder extends Seeder
             [
                 'asset_id'       => 8,
                 'created_by'     => 1,
-                'assigned_to'    => 2,
+                'assigned_to'    => 3,
                 'title'          => 'Cek Monitor LG 24"',
                 'description'    => 'Kalibrasi warna, bersihkan layar',
                 'scheduled_date' => now()->subDays(30),

@@ -40,27 +40,32 @@
             <span class="text-sm">Dashboard</span>
         </a>
 
-        <!-- Assets -->
-        <a href="{{ route('assets.index') }}"
-           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
-                  {{ request()->routeIs('assets.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M20 7l-8-4m0 0L4 7m16 0l-8 4m0 0l8 4m-8-4v10m-8-4l8 4m0 0l8-4"/>
-            </svg>
-            <span class="text-sm">Assets</span>
-        </a>
+        @if(auth()->user()->role !== 'teknisi')
+            <!-- Assets -->
+            <a href="{{ route('assets.index') }}"
+            class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
+                    {{ request()->routeIs('assets.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4m0 0L4 7m16 0l-8 4m0 0l8 4m-8-4v10m-8-4l8 4m0 0l8-4"/>
+                </svg>
+                <span class="text-sm">Assets</span>
+            </a>
+        @endif
 
-        <!-- Categories -->
-        <a href="{{ route('categories.index') }}"
-           class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
-                  {{ request()->routeIs('categories.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
-            </svg>
-            <span class="text-sm">Categories</span>
-        </a>
+        @if(auth()->user()->role === 'admin')
+            <!-- Categories -->
+            <a href="{{ route('categories.index') }}"
+            class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
+                    {{ request()->routeIs('categories.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                <span class="text-sm">Categories</span>
+            </a>
+
+        @endif
 
         <!-- MAINTENANCE GROUP -->
         <div class="pt-3">
@@ -68,20 +73,18 @@
                 Maintenance
             </p>
 
-            <!-- Jadwal — admin & operator only -->
-            @if(auth()->user()->isAdminOrOperator())
+            <!-- Jadwal -->
             <a href="{{ route('maintenance.schedule.index') }}"
-               class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
-                      {{ request()->routeIs('maintenance.schedule.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
+            class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition
+                    {{ request()->routeIs('maintenance.schedule.*') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 <span class="text-sm">Jadwal</span>
             </a>
-            @endif
 
-            <!-- Logs — semua role -->
+            <!-- Logs -->
             <a href="{{ route('maintenance.index') }}"
                class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition mt-1
                       {{ request()->routeIs('maintenance.index') || request()->routeIs('maintenance.show') || request()->routeIs('maintenance.edit') ? 'bg-white/20 text-white font-medium' : 'text-green-100 hover:bg-white/10' }}">
@@ -93,7 +96,7 @@
             </a>
         </div>
 
-        <!-- Users — admin only -->
+        <!-- Users -->
         @if(auth()->user()->isAdmin())
         <div class="pt-3">
             <p class="text-xs font-semibold text-green-400 uppercase tracking-wider px-3 mb-2">

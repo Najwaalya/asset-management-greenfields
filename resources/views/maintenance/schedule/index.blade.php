@@ -10,15 +10,24 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-900">Maintenance Schedule</h2>
-            <p class="text-gray-600 text-sm mt-1">Kelola jadwal maintenance aset</p>
+            <p class="text-gray-600 text-sm mt-1">
+                @if(auth()->user()->role === 'teknisi')
+                    Jadwal maintenance yang ditugaskan ke kamu
+                @else
+                    Kelola jadwal maintenance aset
+                @endif
+            </p>
         </div>
-        <a href="{{ route('maintenance.schedule.create') }}"
-           class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Buat Jadwal
-        </a>
+
+        @if(auth()->user()->role !== 'teknisi')
+            <a href="{{ route('maintenance.schedule.create') }}"
+            class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Buat Jadwal
+            </a>
+        @endif
     </div>
 
     <!-- Table -->
@@ -59,15 +68,19 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end items-center space-x-3">
                                     <a href="{{ route('maintenance.schedule.show', $schedule->id) }}"
-                                       class="text-blue-600 hover:text-blue-700">View</a>
-                                    <a href="{{ route('maintenance.schedule.edit', $schedule->id) }}"
-                                       class="text-yellow-600 hover:text-yellow-700">Edit</a>
-                                    <form action="{{ route('maintenance.schedule.destroy', $schedule->id) }}"
-                                          method="POST" class="inline delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-700">Hapus</button>
-                                    </form>
+                                    class="text-blue-600 hover:text-blue-700">View</a>
+
+                                    @if(auth()->user()->role !== 'teknisi')
+                                        <a href="{{ route('maintenance.schedule.edit', $schedule->id) }}"
+                                        class="text-yellow-600 hover:text-yellow-700">Edit</a>
+
+                                        <form action="{{ route('maintenance.schedule.destroy', $schedule->id) }}"
+                                            method="POST" class="inline delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-700">Hapus</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
