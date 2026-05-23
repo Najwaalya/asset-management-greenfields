@@ -193,21 +193,24 @@
 <script>
 
 $(document).ready(function () {
-
     $('#assetsTable').DataTable({
-
         pageLength: 5,
-
         language: {
             search: "",
-            searchPlaceholder: "Search assets..."
+            searchPlaceholder: "Search assets...",
+            emptyTable: "No assets found"
         },
-
+        columnDefs: [
+            { targets: '_all', defaultContent: '-' }
+        ],
         dom:
-            "<'flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4'lf>" +
+            "<'flex items-center justify-between mb-4'lf>" +
             "t" +
-            "<'flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4'ip>"
-
+            "<'flex items-center justify-between mt-4'ip>",
+        initComplete: function() {
+            $('div.dataTables_filter input').addClass('border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ml-2');
+            $('div.dataTables_length select').addClass('border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mx-1');
+        }
     });
 
     $('.delete-form').on('submit', function(e) {

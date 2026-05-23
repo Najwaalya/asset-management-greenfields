@@ -4,62 +4,74 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\MaintenanceLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MaintenanceLogController extends Controller
 {
     /**
-     * Display all maintenance logs
+     * List semua log
      */
     public function index()
     {
-        $logs = MaintenanceLog::with(['asset', 'reporter'])
+        $user = Auth::user();
+
+        // Teknisi hanya lihat log yang di-assign ke dia
+        $logs = MaintenanceLog::with(['asset', 'reporter', 'assignee', 'schedule'])
+            ->when($user->isTeknisi(), fn($q) => $q->where('assigned_to', $user->id))
             ->latest()
             ->get();
 
-        return view('maintenance.index', compact('logs'));
+        return view('maintenance.logs.index', compact('logs'));
     }
 
     /**
-     * Show create form
+     * Form buat log baru
      */
     public function create()
     {
-        $assets = Asset::all();
+        // Teknisi tidak bisa buat log manual
+        if (Auth::user()->isTeknisi()) {
+            abort(403);
+        }
 
-        return view('maintenance.create', compact('assets'));
+        $assets   = Asset::all();
+        $teknisis = User::where('role', 'teknisi')->get();
+
+        return view('maintenance.logs.create', compact('assets', 'teknisis'));
     }
 
     /**
-     * Store new maintenance log
+     * Simpan log baru
      */
     public function store(Request $request)
     {
+        if (Auth::user()->isTeknisi()) {
+            abort(403);
+        }
+
         $request->validate([
-            'asset_id' => 'required|exists:assets,id',
-            'issue' => 'required|string',
-            'status' => 'required|in:pending,in_progress,resolved',
+            'asset_id'    => 'required|exists:assets,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'issue'       => 'required|string',
+            'status'      => 'required|in:pending,in_progress,resolved',
         ]);
 
         MaintenanceLog::create([
-            'asset_id' => $request->asset_id,
+            'asset_id'    => $request->asset_id,
+            'schedule_id' => $request->schedule_id ?? null,
             'reported_by' => Auth::id(),
-            'issue' => $request->issue,
-            'solution' => $request->solution,
-            'status' => $request->status,
-            'resolved_at' => $request->status === 'resolved'
-                ? now()
-                : null,
+            'assigned_to' => $request->assigned_to,
+            'issue'       => $request->issue,
+            'solution'    => $request->solution,
+            'status'      => $request->status,
+            'resolved_at' => $request->status === 'resolved' ? now() : null,
         ]);
 
-        // Optional: update asset status
         $asset = Asset::find($request->asset_id);
-
         if ($request->status !== 'resolved') {
-            $asset->update([
-                'status' => 'maintenance'
-            ]);
+            $asset->update(['status' => 'maintenance']);
         }
 
         return redirect()
@@ -68,60 +80,85 @@ class MaintenanceLogController extends Controller
     }
 
     /**
-     * Show maintenance detail
+     * Detail log
      */
     public function show($id)
     {
-        $log = MaintenanceLog::with(['asset', 'reporter'])
+        $user = Auth::user();
+        $log  = MaintenanceLog::with(['asset', 'reporter', 'assignee', 'schedule'])
             ->findOrFail($id);
 
-        return view('maintenance.show', compact('log'));
+        // Teknisi hanya bisa lihat log miliknya
+        if ($user->isTeknisi() && $log->assigned_to !== $user->id) {
+            abort(403);
+        }
+
+        return view('maintenance.logs.show', compact('log'));
     }
 
     /**
-     * Show edit form
+     * Form edit — teknisi hanya bisa update status & solusi
      */
     public function edit($id)
     {
-        $log = MaintenanceLog::findOrFail($id);
-        $assets = Asset::all();
+        $user = Auth::user();
+        $log  = MaintenanceLog::findOrFail($id);
 
-        return view('maintenance.edit', compact('log', 'assets'));
+        if ($user->isTeknisi() && $log->assigned_to !== $user->id) {
+            abort(403);
+        }
+
+        $assets   = Asset::all();
+        $teknisis = User::where('role', 'teknisi')->get();
+
+        return view('maintenance.logs.edit', compact('log', 'assets', 'teknisis'));
     }
 
     /**
-     * Update maintenance log
+     * Update log
      */
     public function update(Request $request, $id)
     {
-        $log = MaintenanceLog::findOrFail($id);
+        $user = Auth::user();
+        $log  = MaintenanceLog::findOrFail($id);
 
-        $request->validate([
-            'asset_id' => 'required|exists:assets,id',
-            'issue' => 'required|string',
-            'status' => 'required|in:pending,in_progress,resolved',
-        ]);
+        if ($user->isTeknisi() && $log->assigned_to !== $user->id) {
+            abort(403);
+        }
 
-        $log->update([
-            'asset_id' => $request->asset_id,
-            'issue' => $request->issue,
-            'solution' => $request->solution,
-            'status' => $request->status,
-            'resolved_at' => $request->status === 'resolved'
-                ? now()
-                : null,
-        ]);
-
-        // Optional: update asset status
-        $asset = Asset::find($request->asset_id);
-
-        if ($request->status === 'resolved') {
-            $asset->update([
-                'status' => 'active'
+        // Teknisi hanya boleh update status & solusi
+        if ($user->isTeknisi()) {
+            $request->validate([
+                'status'   => 'required|in:pending,in_progress,resolved',
+                'solution' => 'nullable|string',
             ]);
+
+            $log->update([
+                'status'      => $request->status,
+                'solution'    => $request->solution,
+                'resolved_at' => $request->status === 'resolved' ? now() : null,
+            ]);
+
         } else {
+            $request->validate([
+                'asset_id'    => 'required|exists:assets,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'issue'       => 'required|string',
+                'status'      => 'required|in:pending,in_progress,resolved',
+            ]);
+
+            $log->update([
+                'asset_id'    => $request->asset_id,
+                'assigned_to' => $request->assigned_to,
+                'issue'       => $request->issue,
+                'solution'    => $request->solution,
+                'status'      => $request->status,
+                'resolved_at' => $request->status === 'resolved' ? now() : null,
+            ]);
+
+            $asset = Asset::find($request->asset_id);
             $asset->update([
-                'status' => 'maintenance'
+                'status' => $request->status === 'resolved' ? 'normal' : 'maintenance'
             ]);
         }
 
@@ -131,12 +168,15 @@ class MaintenanceLogController extends Controller
     }
 
     /**
-     * Delete maintenance log
+     * Hapus log — teknisi tidak bisa hapus
      */
     public function destroy($id)
     {
-        $log = MaintenanceLog::findOrFail($id);
+        if (Auth::user()->isTeknisi()) {
+            abort(403);
+        }
 
+        $log = MaintenanceLog::findOrFail($id);
         $log->delete();
 
         return redirect()

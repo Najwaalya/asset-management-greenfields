@@ -296,6 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="w-2 h-2 rounded-full ${statusColor[ev.status] || 'bg-gray-400'} flex-shrink-0"></span>
                             <span>${ev.title}</span>
                             <span class="opacity-60 capitalize">(${ev.status.replace('_',' ')})</span>
+                            <span class="opacity-40 text-xs">[${ev.type === 'schedule' ? 'jadwal' : 'log'}]</span>
                         </div>`
                     ).join('');
 
@@ -313,7 +314,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Click → go to maintenance show (first event)
                 cell.addEventListener('click', function () {
-                    window.location.href = `/maintenance/${dayEvents[0].id}`;
+                    const ev = dayEvents[0];
+                    if (ev.type === 'schedule') {
+                        window.location.href = `/maintenance/schedule/${ev.id}`;
+                    } else {
+                        window.location.href = `/maintenance/${ev.id}`;
+                    }
                 });
             }
 

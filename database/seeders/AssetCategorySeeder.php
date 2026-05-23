@@ -15,12 +15,15 @@ class AssetCategorySeeder extends Seeder
             'Monitor',
             'Keyboard',
             'Projector',
+            'Server',
+            'Switch / Router',
+            'UPS',
+            'Scanner',
+            'Telepon / VOIP',
         ];
 
         foreach ($categories as $category) {
-            AssetCategory::create([
-                'name' => $category
-            ]);
+            AssetCategory::create(['name' => $category]);
         }
     }
 }

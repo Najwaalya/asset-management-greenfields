@@ -45,24 +45,42 @@
                     @csrf
 
                     <!-- EMAIL -->
-                    <input type="email" name="email"
-                           placeholder="Email"
-                           class="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900
-                                  border border-white/20 focus:ring-2 focus:ring-green-400 outline-none">
+                    <div>
+                        <input type="email" name="email"
+                            value="{{ old('email') }}"
+                            placeholder="Email"
+                            class="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900
+                                    border focus:ring-2 focus:ring-green-400 outline-none
+                                    {{ $errors->any() ? 'border-red-400' : 'border-white/20' }}">
+                    </div>
 
                     <!-- PASSWORD -->
-                    <input type="password" name="password"
-                           placeholder="Password"
-                           class="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900
-                                  border border-white/20 focus:ring-2 focus:ring-green-400 outline-none">
+                    <div>
+                        <input type="password" name="password"
+                            placeholder="Password"
+                            class="w-full px-4 py-3 rounded-lg bg-white/90 text-gray-900
+                                    border focus:ring-2 focus:ring-green-400 outline-none
+                                    {{ $errors->any() ? 'border-red-400' : 'border-white/20' }}">
+
+                        <!-- ERROR MESSAGE -->
+                        @if ($errors->any())
+                            <div class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-500/20 border border-red-400/40 rounded-lg">
+                                <svg class="w-4 h-4 text-red-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p class="text-red-200 text-xs">
+                                    {{ $errors->first() }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
 
                     <!-- BUTTON -->
                     <button class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-lg transition">
                         Login
                     </button>
-
                 </form>
-
             </div>
 
         </div>

@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             AssetCategorySeeder::class,
             AssetSeeder::class,
             MaintenanceLogSeeder::class,
+            MaintenanceScheduleSeeder::class,
         ]);
     }
 }
