@@ -23,28 +23,33 @@
         default  => 'bg-green-50 text-green-600',
     };
 
-    $trendColorClass = $trend && $trend >= 0 ? 'text-green-600' : 'text-red-500';
+    $trendValue      = $trend !== null ? (float) $trend : null;
+    $trendColorClass = $trendValue !== null && $trendValue >= 0 ? 'text-green-600' : 'text-red-500';
 @endphp
 
 <div class="rounded-lg shadow border border-gray-200 {{ $cardClass }} p-6 hover:shadow-md transition-all duration-300">
     <div class="flex items-center justify-between">
+
         <div>
             <p class="text-gray-500 text-sm font-medium">{{ $title }}</p>
             <p class="text-3xl font-bold text-gray-900 mt-1">{{ $value }}</p>
-            @if($trend !== null)
+
+            @if($trendValue !== null)
                 <p class="text-xs {{ $trendColorClass }} font-medium mt-2">
-                    @if($trend > 0)
-                        ↑ {{ $trend }}% from last month
-                    @elseif($trend < 0)
-                        ↓ {{ abs($trend) }}% from last month
+                    @if($trendValue > 0)
+                        ↑ {{ $trendValue }}% dari bulan lalu
+                    @elseif($trendValue < 0)
+                        ↓ {{ abs($trendValue) }}% dari bulan lalu
                     @else
-                        → No change
+                        → Tidak ada perubahan
                     @endif
                 </p>
             @endif
         </div>
+
         <div class="p-3 rounded-lg {{ $iconBgClass }}">
             {!! $icon !!}
         </div>
+
     </div>
 </div>

@@ -6,107 +6,80 @@
 
 @section('content')
 
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">Maintenance Logs</h2>
-            <p class="text-gray-600 text-sm mt-1">
-                @if(auth()->user()->role === 'teknisi')
-                    Riwayat maintenance yang kamu kerjakan
-                @else
-                    Seluruh riwayat laporan maintenance
-                @endif
-            </p>
-        </div>
-        @if(auth()->user()->role !== 'teknisi')
-            <a href="{{ route('maintenance.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Buat Log
-            </a>
-        @endif
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-900">Maintenance Logs</h2>
+        <p class="text-gray-600 text-sm mt-1">
+            @if(auth()->user()->role === 'teknisi')
+                Kelola log yang ditugaskan ke kamu
+            @else
+                Seluruh riwayat laporan maintenance
+            @endif
+        </p>
     </div>
+    @if(auth()->user()->role !== 'teknisi')
+        <a href="{{ route('maintenance.create') }}"
+           class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Buat Log
+        </a>
+    @endif
+</div>
 
+{{-- TAB hanya muncul untuk teknisi --}}
+@if(auth()->user()->role === 'teknisi')
+<div class="mb-4 border-b border-gray-200">
+    <nav class="flex space-x-4" id="log-tabs">
+        <button onclick="switchTab('ditugaskan')"
+                id="tab-ditugaskan"
+                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-green-600 text-green-600">
+            Ditugaskan ke Saya
+            <span class="ml-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
+                {{ $myLogs->count() }}
+            </span>
+        </button>
+        <button onclick="switchTab('semua')"
+                id="tab-semua"
+                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+            Semua Log
+        </button>
+    </nav>
+</div>
+@endif
+
+{{-- TABEL: Ditugaskan ke Saya (hanya teknisi) --}}
+@if(auth()->user()->role === 'teknisi')
+<div id="panel-ditugaskan">
     <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
-        <div class="overflow-x-auto">
-            <table id="logsTable" class="w-full text-sm">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Asset</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Lokasi</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Issue</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dilaporkan Oleh</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tanggal</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse($logs as $log)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 font-medium text-gray-900">{{ $log->asset->name ?? '-' }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ $log->asset->location ?? '-' }}</td>
-                            <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ $log->issue }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ $log->reporter->name ?? '-' }}</td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @if($log->status == 'pending')         bg-yellow-100 text-yellow-800
-                                    @elseif($log->status == 'in_progress') bg-blue-100 text-blue-800
-                                    @elseif($log->status == 'resolved')    bg-green-100 text-green-800
-                                    @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $log->status)) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">{{ $log->created_at->format('d M Y') }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end items-center space-x-3">
-                                    <a href="{{ route('maintenance.show', $log->id) }}"
-                                       class="text-blue-600 hover:text-blue-700">View</a>
-                                        <a href="{{ route('maintenance.edit', $log->id) }}"
-                                           class="text-yellow-600 hover:text-yellow-700">Edit</a>
-                                    @if(auth()->user()->role !== 'teknisi')
-                                        <form action="{{ route('maintenance.destroy', $log->id) }}"
-                                              method="POST" class="inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-700">Hapus</button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @include('maintenance.logs._table', [
+            'tableId' => 'myLogsTable',
+            'logs'    => $myLogs,
+            'isOwn'   => true,
+        ])
     </div>
+</div>
+@endif
+
+{{-- TABEL: Semua Log --}}
+<div id="panel-semua" {{ auth()->user()->role === 'teknisi' ? 'style=display:none' : '' }}>
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        @include('maintenance.logs._table', [
+            'tableId' => 'allLogsTable',
+            'logs'    => $allLogs,
+            'isOwn'   => false,
+        ])
+    </div>
+</div>
 
 @endsection
 
 @push('scripts')
 <script>
 $(document).ready(function () {
-    $('#logsTable').DataTable({
-        pageLength: 10,
-        language: {
-            search: "",
-            searchPlaceholder: "Cari log...",
-            emptyTable: "Belum ada log maintenance"
-        },
-        columnDefs: [
-            { targets: '_all', defaultContent: '-' }
-        ],
-        dom:
-            "<'flex items-center justify-between mb-4'lf>" +
-            "t" +
-            "<'flex items-center justify-between mt-4'ip>",
-        initComplete: function() {
-            $('div.dataTables_filter input').addClass('border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ml-2');
-            $('div.dataTables_length select').addClass('border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mx-1');
-        }
-    });
+    initTable('myLogsTable');
+    initTable('allLogsTable');
 
     $('.delete-form').on('submit', function(e) {
         e.preventDefault();
@@ -124,5 +97,38 @@ $(document).ready(function () {
         });
     });
 });
+
+function initTable(id) {
+    if (!document.getElementById(id)) return;
+    $('#' + id).DataTable({
+        pageLength: 10,
+        language: {
+            search: "",
+            searchPlaceholder: "Cari log...",
+            emptyTable: "Belum ada log maintenance"
+        },
+        columnDefs: [{ targets: '_all', defaultContent: '-' }],
+        dom:
+            "<'flex items-center justify-between mb-4'lf>" +
+            "t" +
+            "<'flex items-center justify-between mt-4'ip>",
+        initComplete: function() {
+            $('div.dataTables_filter input').addClass('border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ml-2');
+            $('div.dataTables_length select').addClass('border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mx-1');
+        }
+    });
+}
+
+function switchTab(tab) {
+    document.getElementById('panel-ditugaskan').style.display = tab === 'ditugaskan' ? '' : 'none';
+    document.getElementById('panel-semua').style.display      = tab === 'semua' ? '' : 'none';
+
+    document.getElementById('tab-ditugaskan').className = 'tab-btn px-4 py-2 text-sm font-medium border-b-2 ' +
+        (tab === 'ditugaskan' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700');
+    document.getElementById('tab-semua').className = 'tab-btn px-4 py-2 text-sm font-medium border-b-2 ' +
+        (tab === 'semua' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700');
+
+    $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
+}
 </script>
 @endpush

@@ -13,30 +13,22 @@ class MaintenanceLogController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if ($user->role === 'teknisi') {
-            $logs = MaintenanceLog::with(['asset', 'reporter'])
-                ->where('reported_by', $user->id)
-                ->orderByRaw("CASE
-                    WHEN status = 'pending'     THEN 1
-                    WHEN status = 'in_progress' THEN 2
-                    WHEN status = 'resolved'    THEN 3
-                END")
-                ->latest()
-                ->get();
+            $myLogs  = MaintenanceLog::with(['asset', 'reporter'])
+                        ->where('assigned_to', $user->id)
+                        ->latest()->get();
+
+            $allLogs = MaintenanceLog::with(['asset', 'reporter'])
+                        ->latest()->get();
         } else {
-            $logs = MaintenanceLog::with(['asset', 'reporter'])
-                ->orderByRaw("CASE
-                    WHEN status = 'pending'     THEN 1
-                    WHEN status = 'in_progress' THEN 2
-                    WHEN status = 'resolved'    THEN 3
-                END")
-                ->latest()
-                ->get();
+            $myLogs  = null;
+            $allLogs = MaintenanceLog::with(['asset', 'reporter'])
+                        ->latest()->get();
         }
 
-        return view('maintenance.logs.index', compact('logs'));
+        return view('maintenance.logs.index', compact('myLogs', 'allLogs'));
     }
 
     public function create(Request $request)

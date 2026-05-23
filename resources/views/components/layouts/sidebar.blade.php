@@ -8,10 +8,11 @@
     <!-- LOGO -->
     <div class="px-6 py-6 border-b border-white/10">
         <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M20 7l-8-4m0 0L4 7m16 0l-8 4m0 0l8 4m-8-4v10m-8-4l8 4m0 0l8-4"/>
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                style="background: linear-gradient(135deg, #4ade80, #16a34a);">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M20 7l-8-4m0 0L4 7m16 0l-8 4m0 0l8 4m-8-4v10m-8-4l8 4m0 0l8-4"/>
                 </svg>
             </div>
             <div>
