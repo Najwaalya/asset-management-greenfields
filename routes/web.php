@@ -21,7 +21,10 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-// LOGIN & LOGOUT
+// ======================
+// AUTH
+// ======================
+
 Route::get('/login', [AuthController::class, 'login'])
     ->name('login');
 
@@ -31,55 +34,96 @@ Route::post('/login', [AuthController::class, 'authenticate'])
 Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
+// ======================
 // PROTECTED ROUTES
+// ======================
+
 Route::middleware('auth')->group(function () {
 
-    // Dashboard
+    // ======================
+    // DASHBOARD
+    // ======================
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Assets → admin & operator only
+    // ======================
+    // PROFILE
+    // ======================
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'show'])
+            ->name('profile.show');
+
+        Route::get('/edit', [ProfileController::class, 'edit'])
+            ->name('profile.edit');
+
+        Route::put('/', [ProfileController::class, 'update'])
+            ->name('profile.update');
+    });
+
+    // ======================
+    // ASSET
+    // ======================
     Route::resource('assets', AssetController::class)
         ->middleware('role:admin,operator');
 
-    // Categories → admin only
+    // ======================
+    // CATEGORY
+    // ======================
     Route::resource('categories', AssetCategoryController::class)
         ->middleware('role:admin');
 
-    // Users → admin only
+    // ======================
+    // USER
+    // ======================
     Route::resource('users', UserController::class)
         ->middleware('role:admin');
 
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // ======================
+    // MAINTENANCE SCHEDULE
+    // ======================
 
-    // Maintenance Schedule
-    Route::get('maintenance/schedule', [MaintenanceScheduleController::class, 'index'])
-        ->name('maintenance.schedule.index')
-        ->middleware('role:admin,operator,teknisi');
+    Route::prefix('maintenance/schedule')
+        ->name('maintenance.schedule.')
+        ->group(function () {
 
-    Route::get('maintenance/schedule/{id}', [MaintenanceScheduleController::class, 'show'])
-        ->name('maintenance.schedule.show')
-        ->middleware('role:admin,operator,teknisi');
+            // Semua role bisa lihat daftar & detail
+            Route::middleware('role:admin,operator,teknisi')->group(function () {
 
-    Route::resource('maintenance/schedule', MaintenanceScheduleController::class)
-        ->except(['index', 'show'])
-        ->middleware('role:admin,operator')
-        ->names([
-            'create'  => 'maintenance.schedule.create',
-            'store'   => 'maintenance.schedule.store',
-            'edit'    => 'maintenance.schedule.edit',
-            'update'  => 'maintenance.schedule.update',
-            'destroy' => 'maintenance.schedule.destroy',
-        ]);
+                Route::get('/', [MaintenanceScheduleController::class, 'index'])
+                    ->name('index');
 
-    Route::patch('maintenance/schedule/{id}/status', [MaintenanceScheduleController::class, 'updateStatus'])
-        ->name('maintenance.schedule.updateStatus')
-        ->middleware('role:admin,operator,teknisi');
+                // PENTING: create HARUS sebelum {id}
+                Route::get('/create', [MaintenanceScheduleController::class, 'create'])
+                    ->middleware('role:admin,operator')
+                    ->name('create');
 
-    // Maintenance Logs
+                Route::get('/{id}', [MaintenanceScheduleController::class, 'show'])
+                    ->name('show');
+
+                Route::patch('/{id}/status', [MaintenanceScheduleController::class, 'updateStatus'])
+                    ->name('updateStatus');
+            });
+
+            // Admin & Operator
+            Route::middleware('role:admin,operator')->group(function () {
+
+                Route::post('/', [MaintenanceScheduleController::class, 'store'])
+                    ->name('store');
+
+                Route::get('/{id}/edit', [MaintenanceScheduleController::class, 'edit'])
+                    ->name('edit');
+
+                Route::put('/{id}', [MaintenanceScheduleController::class, 'update'])
+                    ->name('update');
+
+                Route::delete('/{id}', [MaintenanceScheduleController::class, 'destroy'])
+                    ->name('destroy');
+            });
+        });
+
+    // ======================
+    // MAINTENANCE LOG
+    // ======================
     Route::resource('maintenance/logs', MaintenanceLogController::class)
         ->names([
             'index'   => 'maintenance.index',
@@ -90,9 +134,4 @@ Route::middleware('auth')->group(function () {
             'update'  => 'maintenance.update',
             'destroy' => 'maintenance.destroy',
         ]);
-
-    Route::get('/profile',        [ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/edit',   [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile',        [ProfileController::class, 'update'])->name('profile.update');
-
 });

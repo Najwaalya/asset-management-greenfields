@@ -44,9 +44,9 @@ class AssetCategoryController extends Controller
             'description' => $request->description,
         ]);
 
-        return response()->json([
-            'message' => 'Kategori asset berhasil ditambahkan'
-        ]);
+        return redirect()
+            ->route('categories.index')
+            ->with('success', 'Kategori berhasil ditambahkan');
     }
 
     /**
